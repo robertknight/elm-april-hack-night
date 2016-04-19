@@ -33,7 +33,7 @@ init =
 
 update : (Float, Bool) -> Model -> Model
 update (dt, space) state =
-  init
+  {state | obstacles = List.map (\ob -> {ob | x = ob.x - dt}) state.obstacles}
 
 
 ground : Float -> Float -> List Form
@@ -46,16 +46,27 @@ ground w h =
   ]
 
 
+drawObstacles : List Obstacle -> List Form
+drawObstacles obstacles =
+  List.map (\ob -> rect 10 ob.height
+        |> filled (rgb 255 50 50)
+        |> move (ob.x, 0)) obstacles
+
+
 view : (Int, Int) -> Model -> Element
-view (w',h') mario =
+view (w',h') model =
   let
     (w,h) = (toFloat w', toFloat h')
 
-    groundY = 62 - h/2
-
+    groundHeight = 62.0
+    groundY = groundHeight - h/2
+    obstacleRects : List Form
+    obstacleRects =
+      -- Note: Should translate by half obstacle height here
+      List.map (\r -> moveY (-h/2.0 + 62.0) r) (drawObstacles model.obstacles)
 
   in
-    collage w' h' (ground w h)
+    collage w' h' ((ground w h) ++ obstacleRects)
 
 
 main : Signal Element
